@@ -33,10 +33,11 @@
 #include "Axes.h"
 #include "Plane.h"
 #include "PointCloud.h"
+#include "Cube.h"
 
 using namespace std;
 
-GLWidget::GLWidget(QWidget* parent) : QOpenGLWidget(parent), pointSize(5)
+GLWidget::GLWidget(QWidget *parent) : QOpenGLWidget(parent), pointSize(5)
 {
     // enable mouse-events, even if no mouse-button is pressed -> yields smoother mouse-move reactions
     setMouseTracking(true);
@@ -47,18 +48,29 @@ GLWidget::GLWidget(QWidget* parent) : QOpenGLWidget(parent), pointSize(5)
     connect(renderer, &RenderCamera::changed, this, &GLWidget::onRendererChanged);
 
     // setup the scene
-    scene.push_back(new Axes(E0,QMatrix4x4()));    // the global world coordinate system
-    scene.push_back(new Plane(E0+4*E3,-E3));        // some plane
+    scene.push_back(new Axes(E0, QMatrix4x4())); // the global world coordinate system
+
+    Plane *plane = new Plane(E0 + 2 * E3, -E3);
+    scene.push_back(plane); // some plane
 
     // TODO: Assignment 1, Part 1
     //       Add here your own new 3d scene objects, e.g. cubes, hexahedra, etc.,
     //       analog to line 50 above and the respective Axes-class
     //
 
+    Cube *cube = new Cube(E0 + 3 * E3);
+
+    std::vector<SceneObject *> objectsInView;
+    objectsInView.push_back(cube);
+
+    scene.push_back(cube);
+
     // TODO: Assignement 1, Part 2
     //       Add here your own new scene object that represents a perspective camera.
     //       Its draw-method should draw all relevant camera parameters, e.g. image plane, view axes, etc.
     //
+
+    this->camera = new PerspectiveCamera(E0, plane, objectsInView);
 
     // TODO: Assignement 1, Part 3
     //       Add to your perspective camera methods to project the other scene objects onto its image plane
@@ -88,14 +100,14 @@ GLWidget::~GLWidget()
 //
 void GLWidget::initializeGL()
 {
-      // ensure GL flags
-      glEnable(GL_POINT_SMOOTH);
-      glEnable(GL_BLEND);
-      glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-      glClearColor(0.4f,0.4f,0.4f,1);                       // screen background color
-      glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-      glEnable(GL_DEPTH_TEST);
-      glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);               //required for gl_PointSize
+    // ensure GL flags
+    glEnable(GL_POINT_SMOOTH);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glClearColor(0.4f, 0.4f, 0.4f, 1); // screen background color
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_VERTEX_PROGRAM_POINT_SIZE); // required for gl_PointSize
 }
 
 //
@@ -105,10 +117,12 @@ void GLWidget::paintGL()
 {
     renderer->setup();
 
-    scene.draw(*renderer,COLOR_SCENE);
+    scene.draw(*renderer, COLOR_SCENE);
 
     // Assignement 1, Part 2
     // Draw here your perspective camera model
+
+    this->camera->draw(*renderer, COLOR_SCENE);
 
     // Assignement 1, Part 3
     // Draw here the perspective projection
@@ -128,25 +142,33 @@ void GLWidget::resizeGL(int width, int height)
 //
 //  reacts on mouse-wheel events
 //
-void GLWidget::wheelEvent(QWheelEvent* event)
+void GLWidget::wheelEvent(QWheelEvent *event)
 {
     // read the wheel angle and rotate move renderer in/out
-    if (event->angleDelta().y() > 0) renderer->forward ();
-    else                             renderer->backward();
+    if (event->angleDelta().y() > 0)
+        renderer->forward();
+    else
+        renderer->backward();
 }
 
 //
 //  reacts on key-release events
 //
-void GLWidget::keyReleaseEvent(QKeyEvent * event)
+void GLWidget::keyReleaseEvent(QKeyEvent *event)
 {
-    switch ( event->key() )
+    switch (event->key())
     {
         // release camera's axis of rotation
-      case Qt::Key_X: X_Pressed=false; break;
-      case Qt::Key_Y: Y_Pressed=false; break;
+    case Qt::Key_X:
+        X_Pressed = false;
+        break;
+    case Qt::Key_Y:
+        Y_Pressed = false;
+        break;
         // for unhandled events call, keyReleaseEvent of parent class
-      default: QWidget::keyReleaseEvent(event); break;
+    default:
+        QWidget::keyReleaseEvent(event);
+        break;
     }
     update();
 }
@@ -154,33 +176,55 @@ void GLWidget::keyReleaseEvent(QKeyEvent * event)
 //
 //  reacts on key-press events
 //
-void GLWidget::keyPressEvent(QKeyEvent * event)
+void GLWidget::keyPressEvent(QKeyEvent *event)
 {
-    switch ( event->key() )
+    switch (event->key())
     {
         // trigger translation using keyboard
     case Qt::Key_4:
-    case Qt::Key_Left:     renderer->left    (); break;
+    case Qt::Key_Left:
+        renderer->left();
+        break;
     case Qt::Key_6:
-    case Qt::Key_Right:    renderer->right   (); break;
+    case Qt::Key_Right:
+        renderer->right();
+        break;
     case Qt::Key_9:
-    case Qt::Key_PageUp:   renderer->forward (); break;
+    case Qt::Key_PageUp:
+        renderer->forward();
+        break;
     case Qt::Key_3:
-    case Qt::Key_PageDown: renderer->backward(); break;
+    case Qt::Key_PageDown:
+        renderer->backward();
+        break;
     case Qt::Key_8:
-    case Qt::Key_Up:       renderer->up      (); break;
+    case Qt::Key_Up:
+        renderer->up();
+        break;
     case Qt::Key_2:
-    case Qt::Key_Down:     renderer->down    (); break;
+    case Qt::Key_Down:
+        renderer->down();
+        break;
         // reset camera position
-    case Qt::Key_R:        renderer->reset   (); break;
+    case Qt::Key_R:
+        renderer->reset();
+        break;
         // clamp camera's axis of rotation
-    case Qt::Key_X:        X_Pressed=true;       break;
-    case Qt::Key_Y:        Y_Pressed=true;       break;
+    case Qt::Key_X:
+        X_Pressed = true;
+        break;
+    case Qt::Key_Y:
+        Y_Pressed = true;
+        break;
         // quit application
     case Qt::Key_Q:
-    case Qt::Key_Escape: QApplication::instance()->quit(); break;
+    case Qt::Key_Escape:
+        QApplication::instance()->quit();
+        break;
         // for unhandled events call keyPressEvent of parent class
-    default: QWidget::keyPressEvent(event);  break;
+    default:
+        QWidget::keyPressEvent(event);
+        break;
     }
     update();
 }
@@ -190,21 +234,25 @@ void GLWidget::keyPressEvent(QKeyEvent * event)
 //
 void GLWidget::mouseMoveEvent(QMouseEvent *event)
 {
-    QPoint d = event->pos()-prevMousePosition;
+    QPoint d = event->pos() - prevMousePosition;
     prevMousePosition = event->pos();
 
     // if left-mouse-button is pressed, trigger rotation of renderer
     if (event->buttons() & Qt::LeftButton)
     {
-        renderer->rotate(X_Pressed?0:d.y(), Y_Pressed?0:d.x(), 0);
+        renderer->rotate(X_Pressed ? 0 : d.y(), Y_Pressed ? 0 : d.x(), 0);
     }
     // if right-mouse-button is pressed, trigger translation of renderer
-    else if ( event->buttons() & Qt::RightButton)
+    else if (event->buttons() & Qt::RightButton)
     {
-        if (d.x() < 0) renderer->right();
-        if (d.x() > 0) renderer->left();
-        if (d.y() < 0) renderer->down();
-        if (d.y() > 0) renderer->up();
+        if (d.x() < 0)
+            renderer->right();
+        if (d.x() > 0)
+            renderer->left();
+        if (d.y() < 0)
+            renderer->down();
+        if (d.y() > 0)
+            renderer->up();
     }
 }
 
@@ -213,7 +261,7 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
 //
 void GLWidget::onRendererChanged()
 {
-  update();
+    update();
 }
 
 //
@@ -221,10 +269,12 @@ void GLWidget::onRendererChanged()
 //
 void GLWidget::setPointSize(int size)
 {
-  assert(size > 0);
-  pointSize = size;
-  for (auto s: scene) if (s->getType()==SceneObjectType::ST_POINT_CLOUD) reinterpret_cast<PointCloud*>(s)->setPointSize(unsigned(pointSize));
-  update();
+    assert(size > 0);
+    pointSize = size;
+    for (auto s : scene)
+        if (s->getType() == SceneObjectType::ST_POINT_CLOUD)
+            reinterpret_cast<PointCloud *>(s)->setPointSize(unsigned(pointSize));
+    update();
 }
 
 //
@@ -235,19 +285,19 @@ void GLWidget::setPointSize(int size)
 //
 void GLWidget::openFileDialog()
 {
-    const QString filePath   = QFileDialog::getOpenFileName(this, tr("Open PLY file"), "../data", tr("PLY Files (*.ply)"));
-    PointCloud*   pointCloud = new PointCloud;
+    const QString filePath = QFileDialog::getOpenFileName(this, tr("Open PLY file"), "../data", tr("PLY Files (*.ply)"));
+    PointCloud *pointCloud = new PointCloud;
 
     if (!filePath.isEmpty() && pointCloud)
     {
-         cout << filePath.toStdString() << endl;
-         pointCloud->loadPLY(filePath);
-         pointCloud->setPointSize(unsigned(pointSize));
-         scene.push_back(pointCloud);
-         update();
-         return;
-     }
-     delete pointCloud;
+        cout << filePath.toStdString() << endl;
+        pointCloud->loadPLY(filePath);
+        pointCloud->setPointSize(unsigned(pointSize));
+        scene.push_back(pointCloud);
+        update();
+        return;
+    }
+    delete pointCloud;
 }
 
 //
@@ -256,12 +306,17 @@ void GLWidget::openFileDialog()
 void GLWidget::radioButtonClicked()
 {
     // TODO: toggle to
-    QMessageBox::warning(this, "Feature" ,"Some things are missing here");
-    if (sender()) {
-       QString      name = sender()->objectName();
-       if (name=="radioButton_1") {};
-       if (name=="radioButton_2") {};
-       update();
+    QMessageBox::warning(this, "Feature", "Some things are missing here");
+    if (sender())
+    {
+        QString name = sender()->objectName();
+        if (name == "radioButton_1")
+        {
+        };
+        if (name == "radioButton_2")
+        {
+        };
+        update();
     }
 }
 
@@ -270,7 +325,7 @@ void GLWidget::radioButtonClicked()
 //
 void GLWidget::checkBoxClicked()
 {
-    QMessageBox::warning(this, "Feature" ,"ups hier fehlt noch was");
+    QMessageBox::warning(this, "Feature", "ups hier fehlt noch was");
 }
 
 //
@@ -278,6 +333,5 @@ void GLWidget::checkBoxClicked()
 //
 void GLWidget::spinBoxValueChanged(int)
 {
-    QMessageBox::warning(this, "Feature" ,"ups hier fehlt noch was");
+    QMessageBox::warning(this, "Feature", "ups hier fehlt noch was");
 }
-

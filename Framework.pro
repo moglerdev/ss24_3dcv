@@ -21,11 +21,15 @@ UI_DIR += ./GeneratedFiles
 RCC_DIR += ./GeneratedFiles
 
 HEADERS += ./glwidget.h \
+    *.h \
     ./mainwindow.h \
     ./PointCloud.h \
     ./GLConvenience.h \
     ./QtConvenience.h \
     Axes.h \
+    Cube.h \
+    Hexahedron.h \
+    PerspectiveCamera.h \
     Plane.h \
     Renderer.h \
     Scene.h \
@@ -38,6 +42,9 @@ SOURCES += ./glwidget.cpp \
     ./GLConvenience.cpp \
     ./QtConvenience.cpp \
     Axes.cpp \
+    Cube.cpp \
+    Hexahedron.cpp \
+    PerspectiveCamera.cpp \
     Plane.cpp \
     Renderer.cpp \
     Scene.cpp \

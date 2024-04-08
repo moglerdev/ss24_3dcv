@@ -5,7 +5,7 @@
 //
 #include "Cube.h"
 
-#include "GLConvenience.h"
+// #include "GLConvenience.h"
 #include "Axes.h"
 
 Cube::Cube(QVector4D _origin, float _sideLength):
