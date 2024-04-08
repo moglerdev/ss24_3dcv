@@ -24,5 +24,5 @@ void PerspectiveCamera::draw(
     float transparency) const
 {
   // draw the camera origin
-  renderer.renderPoint(E0, COLOR_CAMERA);
+  renderer.renderPoint(E0, color, 20.0f);
 }
