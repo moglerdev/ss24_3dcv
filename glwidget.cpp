@@ -50,7 +50,8 @@ GLWidget::GLWidget(QWidget *parent) : QOpenGLWidget(parent), pointSize(5)
     // setup the scene
     scene.push_back(new Axes(E0, QMatrix4x4())); // the global world coordinate system
 
-    Plane *plane = new Plane(E0 + 2 * E3, -E3);
+    auto imagePrincipalPoint = E0 + 2 * E3;
+    Plane *plane = new Plane(imagePrincipalPoint, -E3);
     scene.push_back(plane); // some plane
 
     // TODO: Assignment 1, Part 1
@@ -59,10 +60,6 @@ GLWidget::GLWidget(QWidget *parent) : QOpenGLWidget(parent), pointSize(5)
     //
 
     Cube *cube = new Cube(E0 + 3 * E3);
-
-    std::vector<SceneObject *> objectsInView;
-    objectsInView.push_back(cube);
-
     scene.push_back(cube);
 
     // TODO: Assignement 1, Part 2
@@ -70,7 +67,12 @@ GLWidget::GLWidget(QWidget *parent) : QOpenGLWidget(parent), pointSize(5)
     //       Its draw-method should draw all relevant camera parameters, e.g. image plane, view axes, etc.
     //
 
-    this->camera = new PerspectiveCamera(E0, plane, objectsInView);
+    auto pose = QMatrix4x4(1, 0, 0, 0,
+                           0, 1, 0, 0,
+                           0, 0, 1, 0,
+                           0, 0, 0, 1);
+
+    this->camera = new PerspectiveCamera(pose, imagePrincipalPoint, *plane);
 
     // TODO: Assignement 1, Part 3
     //       Add to your perspective camera methods to project the other scene objects onto its image plane
