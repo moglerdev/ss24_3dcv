@@ -29,7 +29,7 @@ Plane &Plane::operator=(const Plane &p)
     return *this;
 }
 
-void Plane::draw(const RenderCamera &renderer, const QColor &color, float transparency) const
+std::array<QVector3D, 4> Plane::getVertices() const
 {
     QVector3D n(normal);
     QVector3D o(origin);
@@ -40,14 +40,18 @@ void Plane::draw(const RenderCamera &renderer, const QColor &color, float transp
     x.normalize();
     y.normalize();
 
-    // renderer.renderLine(o, o + 0.3f * n, color);
+    std::array<QVector3D, 4> vertices;
+    vertices[0] = o + 1.0f * x + 1.0f * y;
+    vertices[1] = o - 1.0f * x + 1.0f * y;
+    vertices[2] = o - 1.0f * x - 1.0f * y;
+    vertices[3] = o + 1.0f * x - 1.0f * y;
 
-    std::vector<QVector2D> bb;
-    bb.push_back(QVector2D(-1, -1));
-    bb.push_back(QVector2D(1, 1));
-    renderer.renderPlane(o + bb[0][0] * x + bb[0][1] * y,
-                         o + bb[0][0] * x + bb[1][1] * y,
-                         o + bb[1][0] * x + bb[1][1] * y,
-                         o + bb[1][0] * x + bb[0][1] * y,
-                         color, transparency);
+    return vertices;
+}
+
+void Plane::draw(const RenderCamera &renderer, const QColor &color, float transparency) const
+{
+    std::array<QVector3D, 4> vertices = getVertices();
+    renderer.renderPlane(vertices[0], vertices[1], vertices[2], vertices[3], color, transparency);
+    renderer.renderLine(origin, origin + normal, color, 3.0f);
 }

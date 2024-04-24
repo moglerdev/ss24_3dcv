@@ -51,7 +51,7 @@ GLWidget::GLWidget(QWidget *parent) : QOpenGLWidget(parent), pointSize(5)
     scene.push_back(new Axes(E0, QMatrix4x4())); // the global world coordinate system
 
     auto imagePrincipalPoint = E0 + 2 * E3;
-    Plane *plane = new Plane(imagePrincipalPoint, QVector4D(0, 0, 1, 0));
+    Plane *plane = new Plane(imagePrincipalPoint, E3);
     scene.push_back(plane); // some plane
 
     // TODO: Assignment 1, Part 1
@@ -72,7 +72,7 @@ GLWidget::GLWidget(QWidget *parent) : QOpenGLWidget(parent), pointSize(5)
                            0, 0, 1, 1,
                            0, 0, 0, 1);
 
-    this->camera = new PerspectiveCamera(pose, imagePrincipalPoint, *plane);
+    this->camera = new PerspectiveCamera(pose, imagePrincipalPoint, plane);
 
     // TODO: Assignement 1, Part 3
     //       Add to your perspective camera methods to project the other scene objects onto its image plane
@@ -129,7 +129,7 @@ void GLWidget::paintGL()
     // Assignement 1, Part 3
     // Draw here the perspective projection
 
-    this->camera->renderPoint(*renderer, QVector4D(0, 10, 100, 1));
+    this->camera->renderLine(*renderer, QVector4D(0, -3, 20, 1), QVector4D(0, 1, 40, 1));
 }
 
 //

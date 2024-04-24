@@ -8,9 +8,12 @@ void PerspectiveCamera::draw(
   // draw the camera origin
 
   renderer.renderPoint(this->pose.column(3), color, 20.0f);
-  renderer.renderPoint(this->imagePrincipalPoint, color, 20.0f);
 
-  // auto cornerTopLeft = this->imagePlane.getCornerTopLeft();
-  // renderer.renderLine(this->pose.column(3), cornerTopLeft, color, 3.0f);
-  // renderer.renderPoint(this->origin, color, 20.0f);
+  // draw the camera axes
+  auto planeVertices = this->imagePlane->getVertices();
+  auto pos = pose.column(3);
+  renderer.renderLine(pos, QVector4D(planeVertices[0]), COLOR_POINT_CLOUD, 3.0f);
+  renderer.renderLine(pos, QVector4D(planeVertices[1]), COLOR_POINT_CLOUD, 3.0f);
+  renderer.renderLine(pos, QVector4D(planeVertices[2]), COLOR_POINT_CLOUD, 3.0f);
+  renderer.renderLine(pos, QVector4D(planeVertices[3]), COLOR_POINT_CLOUD, 3.0f);
 }

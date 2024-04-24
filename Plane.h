@@ -16,6 +16,8 @@ public:
           const QVector4D &_normal = E1);
     virtual ~Plane() override {}
 
+    std::array<QVector3D, 4> getVertices() const;
+
     virtual void affineMap(const QMatrix4x4 &matrix) override;
     virtual void draw(const RenderCamera &renderer,
                       const QColor &color = COLOR_PLANE,
