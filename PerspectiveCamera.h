@@ -5,6 +5,8 @@
 
 #include "SceneObject.h"
 #include "Plane.h"
+#include "Hexahedron.h"
+#include "PointCloud.h"
 
 class PerspectiveCamera : public SceneObject
 {
@@ -44,23 +46,56 @@ public:
 
         // calculate real world point cordinates
         return pose * QVector4D(planePoint.x(), planePoint.y(), dis.z(), 1);
-
-        // renderer.renderPoint(point, COLOR_CAMERA, 20.0f);
     }
 
     void renderLine(const RenderCamera &renderer, const QVector4D &a, const QVector4D &b)
     {
         // TODO: keine Ahnung ob das so richtig ist, aber es geht xD
 
-        renderer.renderLine(a, b, COLOR_CAMERA, 3.0f);
-
         auto t = this->calculateProjectedPoint(a);
         auto v = this->calculateProjectedPoint(b);
 
-        renderer.renderLine(pose.column(3), a, COLOR_POINT_CLOUD, 1.0f);
-        renderer.renderLine(pose.column(3), b, COLOR_POINT_CLOUD, 1.0f);
-
         renderer.renderLine(t, v, COLOR_CAMERA, 3.0f);
+    }
+
+    void renderHexahedron(const RenderCamera &renderer, const Hexahedron *hexahedron)
+    {
+        bool first = true;
+        QVector4D lastPoint;
+        for (auto p : *hexahedron)
+        {
+            auto t = this->calculateProjectedPoint(QVector4D(p, 1.0f));
+            if (!first)
+            {
+                renderer.renderLine(lastPoint, t, COLOR_CAMERA, 1.0f);
+            }
+            lastPoint = t;
+            first = false;
+            renderer.renderPoint(t, COLOR_CAMERA, 10.0f);
+        }
+    }
+
+    void renderPointCloud(const RenderCamera &renderer, const PointCloud &pointCloud)
+    {
+        for (auto p : pointCloud)
+        {
+            auto t = this->calculateProjectedPoint(p);
+            renderer.renderPoint(t, COLOR_CAMERA, 5.0f);
+        }
+    }
+
+    void renderSceneObject(const RenderCamera &renderer, const SceneObject *sceneObject)
+    {
+        switch (sceneObject->getType())
+        {
+        case SceneObjectType::ST_CUBE:
+        case SceneObjectType::ST_HEXAHEDRON:
+            this->renderHexahedron(renderer, dynamic_cast<const Hexahedron *>(sceneObject));
+            break;
+        case SceneObjectType::ST_POINT_CLOUD:
+            this->renderPointCloud(renderer, dynamic_cast<const PointCloud &>(*sceneObject));
+            break;
+        }
     }
 
     // apply affine map to the corners of the hexahedron

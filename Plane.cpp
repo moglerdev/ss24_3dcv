@@ -52,6 +52,6 @@ std::array<QVector3D, 4> Plane::getVertices() const
 void Plane::draw(const RenderCamera &renderer, const QColor &color, float transparency) const
 {
     std::array<QVector3D, 4> vertices = getVertices();
-    renderer.renderPlane(vertices[0], vertices[1], vertices[2], vertices[3], color, transparency);
+    renderer.renderPlane(vertices[0], vertices[1], vertices[2], vertices[3], color, 0.05f);
     renderer.renderLine(origin, origin + normal, color, 3.0f);
 }

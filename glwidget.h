@@ -19,7 +19,6 @@ private:
     // scene and scene control
     int pointSize;
     Scene scene;
-    PerspectiveCamera *camera;
 
 public:
     GLWidget(QWidget *parent = nullptr);

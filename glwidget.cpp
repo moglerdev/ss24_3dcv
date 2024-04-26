@@ -3,6 +3,7 @@
 // (c) Georg Umlauf, 2021+2022+2024
 //
 #include "glwidget.h"
+#include "Rotation.h"
 #include <QtGui>
 
 #if defined(__APPLE__)
@@ -43,36 +44,36 @@ GLWidget::GLWidget(QWidget *parent) : QOpenGLWidget(parent), pointSize(5)
     setMouseTracking(true);
 
     // setup render camera and connect its signals
-    renderer = new RenderCamera();
+    this->renderer = new RenderCamera();
     renderer->reset();
     connect(renderer, &RenderCamera::changed, this, &GLWidget::onRendererChanged);
 
     // setup the scene
     scene.push_back(new Axes(E0, QMatrix4x4())); // the global world coordinate system
 
-    auto imagePrincipalPoint = E0 + 2 * E3;
-    Plane *plane = new Plane(imagePrincipalPoint, E3);
-    scene.push_back(plane); // some plane
-
     // TODO: Assignment 1, Part 1
     //       Add here your own new 3d scene objects, e.g. cubes, hexahedra, etc.,
     //       analog to line 50 above and the respective Axes-class
     //
-    auto cube = new Cube(QVector4D(0, 2, 20, 1));
+    auto cube = new Cube(QVector4D(0, 2, 40, 1));
+    auto rot = rotate(QVector3D(0.8, 0, 0));
+    cube->affineMap(rot);
     scene.push_back(cube);
 
     // TODO: Assignement 1, Part 2
     //       Add here your own new scene object that represents a perspective camera.
     //       Its draw-method should draw all relevant camera parameters, e.g. image plane, view axes, etc.
     //
-
+    auto imagePrincipalPoint = QVector4D(0, 0, 5, 1);
+    Plane *plane = new Plane(imagePrincipalPoint, E3);
+    scene.push_back(plane); // some plane
     // TODO: Rotation
     auto pose = QMatrix4x4(1, 0, 0, 0,
                            0, 1, 0, 0,
-                           0, 0, 1, 1,
+                           0, 0, 1, -10,
                            0, 0, 0, 1);
 
-    this->camera = new PerspectiveCamera(pose, imagePrincipalPoint, plane);
+    scene.push_back(new PerspectiveCamera(pose, imagePrincipalPoint, plane));
 
     // TODO: Assignement 1, Part 3
     //       Add to your perspective camera methods to project the other scene objects onto its image plane
@@ -124,12 +125,8 @@ void GLWidget::paintGL()
     // Assignement 1, Part 2
     // Draw here your perspective camera model
 
-    this->camera->draw(*renderer, COLOR_SCENE);
-
     // Assignement 1, Part 3
     // Draw here the perspective projection
-
-    this->camera->renderLine(*renderer, QVector4D(0, -3, 20, 1), QVector4D(0, 1, 40, 1));
 }
 
 //
