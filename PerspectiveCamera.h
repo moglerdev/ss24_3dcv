@@ -31,6 +31,19 @@ public:
     {
     }
 
+    QMatrix4x4 getPose() const
+    {
+        return pose;
+    }
+
+    void setPose(const QMatrix4x4& newPose)
+    {
+        auto affineMap = pose.inverted() * newPose;
+        pose = newPose;
+        imagePrincipalPoint = affineMap * imagePrincipalPoint;
+        this->imagePlane->affineMap(affineMap);
+    }
+
     QVector4D calculateProjectedPoint(const QVector4D &worldPoint)
     {
         // calculate the relative position of the point in the camera coordinate system
@@ -103,7 +116,7 @@ public:
     {
         pose = matrix * pose;
         imagePrincipalPoint = pose * imagePrincipalPoint;
-        imagePlane->affineMap(pose);
+        imagePlane->affineMap(matrix);
     }
 
     // draws the wireframe of the hexahedron

@@ -70,10 +70,11 @@ GLWidget::GLWidget(QWidget *parent) : QOpenGLWidget(parent), pointSize(5)
     // TODO: Rotation
     auto pose = QMatrix4x4(1, 0, 0, 0,
                            0, 1, 0, 0,
-                           0, 0, 1, -10,
+                           0, 0, 1, 0,
                            0, 0, 0, 1);
 
-    scene.push_back(new PerspectiveCamera(pose, imagePrincipalPoint, plane));
+    this->camera = new PerspectiveCamera(pose, imagePrincipalPoint, plane);
+    scene.push_back(this->camera);
 
     // TODO: Assignement 1, Part 3
     //       Add to your perspective camera methods to project the other scene objects onto its image plane
@@ -333,6 +334,42 @@ void GLWidget::checkBoxClicked()
 // controls spin box changes
 //
 void GLWidget::spinBoxValueChanged(int)
+{
+    QMessageBox::warning(this, "Feature", "ups hier fehlt noch was");
+}
+
+void GLWidget::setPerspectiveCameraX(double x)
+{
+    auto pose = this->camera->getPose();
+    pose(0, 3) = x;
+    this->camera->setPose(pose);
+}
+
+void GLWidget::setPerspectiveCameraY(double y)
+{
+    auto pose = this->camera->getPose();
+    pose(1, 3) = y;
+    this->camera->setPose(pose);
+}
+
+void GLWidget::setPerspectiveCameraZ(double z)
+{
+    auto pose = this->camera->getPose();
+    pose(2, 3) = z;
+    this->camera->setPose(pose);
+}
+
+void GLWidget::setPerspectiveCameraPsi(double)
+{
+    QMessageBox::warning(this, "Feature", "ups hier fehlt noch was");
+}
+
+void GLWidget::setPerspectiveCameraPhi(double)
+{
+    QMessageBox::warning(this, "Feature", "ups hier fehlt noch was");
+}
+
+void GLWidget::setPerspectiveCameraTheta(double)
 {
     QMessageBox::warning(this, "Feature", "ups hier fehlt noch was");
 }

@@ -8,23 +8,26 @@
 
 #include <iostream>
 MainWindow::MainWindow(QWidget *parent)
-	: QMainWindow(parent), ui(new Ui::MainWindowClass)
+    : QMainWindow(parent), ui(new Ui::MainWindowClass)
 {
     ui->setupUi(this);
-	ui->glwidget->setFocusPolicy(Qt::StrongFocus);
+    ui->glwidget->setFocusPolicy(Qt::StrongFocus);
     ui->glwidget->setFocus();
 
-    QObject::connect(ui->pushButton,       &QPushButton ::clicked,      ui->glwidget, &GLWidget  ::openFileDialog);
-    QObject::connect(ui->radioButton_1,    &QRadioButton::clicked,      ui->glwidget, &GLWidget  ::radioButtonClicked);
-    QObject::connect(ui->radioButton_2,    &QRadioButton::clicked,      ui->glwidget, &GLWidget  ::radioButtonClicked);
-    QObject::connect(ui->horizontalSlider, &QSlider     ::valueChanged, this,         &MainWindow::updatePointSize);
+    QObject::connect(ui->pushButton, &QPushButton ::clicked, ui->glwidget, &GLWidget ::openFileDialog);
+    QObject::connect(ui->radioButton_1, &QRadioButton::clicked, ui->glwidget, &GLWidget ::radioButtonClicked);
+    QObject::connect(ui->radioButton_2, &QRadioButton::clicked, ui->glwidget, &GLWidget ::radioButtonClicked);
+    QObject::connect(ui->horizontalSlider, &QSlider ::valueChanged, this, &MainWindow::updatePointSize);
+    QObject::connect(ui->pX, &QDoubleSpinBox::valueChanged, ui->glwidget, &GLWidget::setPerspectiveCameraX);
+    QObject::connect(ui->pY, &QDoubleSpinBox::valueChanged, ui->glwidget, &GLWidget::setPerspectiveCameraY);
+    QObject::connect(ui->pZ, &QDoubleSpinBox::valueChanged, ui->glwidget, &GLWidget::setPerspectiveCameraZ);
 
     updatePointSize(3);
 }
 
 MainWindow::~MainWindow()
 {
-	delete ui;
+    delete ui;
 }
 
 void MainWindow::updatePointSize(int value)

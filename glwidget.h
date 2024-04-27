@@ -19,6 +19,7 @@ private:
     // scene and scene control
     int pointSize;
     Scene scene;
+    PerspectiveCamera *camera;
 
 public:
     GLWidget(QWidget *parent = nullptr);
@@ -31,6 +32,12 @@ public slots:
     void checkBoxClicked();        // handle check boxes
     void spinBoxValueChanged(int); // handles spin  boxes changes
     void setPointSize(int);
+    void setPerspectiveCameraX(double);
+    void setPerspectiveCameraY(double);
+    void setPerspectiveCameraZ(double);
+    void setPerspectiveCameraPsi(double);
+    void setPerspectiveCameraPhi(double);
+    void setPerspectiveCameraTheta(double);
 
 protected:
     // painting the canvas
