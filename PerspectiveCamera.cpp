@@ -3,7 +3,7 @@
 void PerspectiveCamera::draw(
     const RenderCamera &renderer,
     const QColor &color,
-    float transparency) const
+    float) const
 {
   // draw the camera origin
 

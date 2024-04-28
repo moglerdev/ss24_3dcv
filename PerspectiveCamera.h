@@ -17,7 +17,7 @@ protected:
 
 public:
     PerspectiveCamera(
-        const QMatrix4x4 &_pose,
+        const QMatrix4x4& _pose,
         const QVector4D &_imagePrincipalPoint,
         Plane *_imagePlane) : pose(_pose),
                               imagePlane(_imagePlane)
@@ -40,6 +40,7 @@ public:
     {
         auto affineMap = pose.inverted() * newPose;
         pose = newPose;
+        // IMPORTANT IS THAT THE AFFINE MAP IS BEFORE THE VECTOR !!!!!
         imagePrincipalPoint = affineMap * imagePrincipalPoint;
         this->imagePlane->affineMap(affineMap);
     }
