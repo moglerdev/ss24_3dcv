@@ -15,14 +15,16 @@ using namespace std;
 
 PointCloud::PointCloud()
 {
-    type      = SceneObjectType::ST_POINT_CLOUD;
+    type = SceneObjectType::ST_POINT_CLOUD;
     pointSize = 3.0f;
 }
 
 PointCloud::~PointCloud()
-{}
+{
+}
 
-std::string trim(const std::string& str) {
+std::string trim(const std::string &str)
+{
     // Find the first non-whitespace character
     size_t first = str.find_first_not_of(" \t\n\r");
     // If the string is all whitespace, return an empty string
@@ -34,7 +36,7 @@ std::string trim(const std::string& str) {
     return str.substr(first, last - first + 1);
 }
 
-bool PointCloud::loadPLY(const QString& filePath)
+bool PointCloud::loadPLY(const QString &filePath)
 {
     // open stream
     fstream is;
@@ -44,36 +46,44 @@ bool PointCloud::loadPLY(const QString& filePath)
     string line;
     getline(is, line);
     line = trim(line);
-    if (line != "ply") return false;
+    if (line != "ply")
+        return false;
 
     // parse header looking only for 'element vertex' section size
     unsigned pointsCount = 0;
-    while (is.good()) {
+    while (is.good())
+    {
         getline(is, line);
         line = trim(line);
-        if (line == "end_header") {
+        if (line == "end_header")
+        {
             break;
-        } else {
+        }
+        else
+        {
             stringstream ss(line);
             string tag1, tag2, tag3;
             ss >> tag1 >> tag2 >> tag3;
-            if (tag1 == "element" && tag2 == "vertex") {
+            if (tag1 == "element" && tag2 == "vertex")
+            {
                 pointsCount = unsigned(atoi(tag3.c_str()));
             }
         }
     }
 
     // read and parse 'element vertex' section
-    if (pointsCount > 0) {
+    if (pointsCount > 0)
+    {
         this->resize(pointsCount);
         float m = float(INT_MAX);
-        pointsBoundMin = QVector3D(m,m,m);
+        pointsBoundMin = QVector3D(m, m, m);
         pointsBoundMax = -pointsBoundMin;
 
         stringstream ss;
         string line;
         QVector4D *p = this->data();
-        for (size_t i = 0; is.good() && i < pointsCount; ++i) {
+        for (size_t i = 0; is.good() && i < pointsCount; ++i)
+        {
             getline(is, line);
             ss.str(line);
             float x, y, z;
@@ -94,19 +104,32 @@ bool PointCloud::loadPLY(const QString& filePath)
         auto si = size();
 
         // basic validation
-        if (x < si) return false;
+        if (x < si)
+            return false;
 
         cout << "number of points: " + to_string(pointsCount) << endl;
 
         // rescale data
-        float a,s=0;
-        for (int i=0; i<3;i++) {
-            a = pointsBoundMax[i]-pointsBoundMin[i];
-            s+= a*a;
+        float a, s = 0;
+        for (int i = 0; i < 3; i++)
+        {
+            a = pointsBoundMax[i] - pointsBoundMin[i];
+            s += a * a;
         }
-        s = sqrt(s)/pointCloudScale;
-        for (int i=0; i < size(); i++) { (*this)[i]/=s; (*this)[i][3] = 1.0; }
+        s = sqrt(s) / pointCloudScale;
+        for (int i = 0; i < size(); i++)
+        {
+            (*this)[i] /= s;
+            (*this)[i][3] = 1.0;
+        }
     }
+
+    // Move Point Cloud 20 times on the Z Axe
+    // TODO: Randomizer
+    this->affineMap(QMatrix4x4(1, 0, 0, 0,
+                               0, 1, 0, 0,
+                               0, 0, 1, 20,
+                               0, 0, 0, 1));
     return true;
 }
 
@@ -115,14 +138,15 @@ void PointCloud::setPointSize(unsigned _pointSize)
     pointSize = _pointSize;
 }
 
-void PointCloud::affineMap(const QMatrix4x4& M)
+void PointCloud::affineMap(const QMatrix4x4 &M)
 {
-    for (unsigned i = 0; i < size(); ++i) {
+    for (unsigned i = 0; i < size(); ++i)
+    {
         (*this)[i] = M.map((*this)[i]);
     }
 }
 
-void PointCloud::draw(const RenderCamera& camera, const QColor& color, float ) const
+void PointCloud::draw(const RenderCamera &camera, const QColor &color, float) const
 {
-    camera.renderPCL((*this),color,pointSize);
+    camera.renderPCL((*this), color, pointSize);
 }
