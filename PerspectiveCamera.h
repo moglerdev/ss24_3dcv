@@ -2,6 +2,7 @@
 #define PERSPECTIVECAMERA_H
 
 #include <math.h>
+#include <vector>
 
 #include "SceneObject.h"
 #include "Plane.h"
@@ -53,7 +54,7 @@ public:
         // calculate eucliden distance from imagePrincipalPoint to camera
         auto dis = pose.inverted() * imagePrincipalPoint;
         // invert it because we use it for the front
-        auto f = -dis.z();
+        auto f = -dis.z(); // TODO: Skalar Produkt
 
         // calculate perspective projection
         auto planePoint = (-f / relativePoint.z()) * QVector2D(relativePoint.x(), relativePoint.y());
@@ -74,18 +75,13 @@ public:
 
     void renderHexahedron(const RenderCamera &renderer, const Hexahedron *hexahedron)
     {
-        bool first = true;
-        QVector4D lastPoint;
-        for (auto p : *hexahedron)
-        {
-            auto t = this->calculateProjectedPoint(QVector4D(p, 1.0f));
-            if (!first)
-            {
-                renderer.renderLine(lastPoint, t, COLOR_CAMERA, 1.0f);
-            }
-            lastPoint = t;
-            first = false;
-            renderer.renderPoint(t, COLOR_CAMERA, 10.0f);
+        const std::vector<QVector3D> &corners = std::vector(*hexahedron);
+        for (unsigned i = 0; i < 2 * hexahedron->getEdgeCount(); i += 2) {
+            auto p1 = corners[hexahedron->getEdgeList()[i]];
+            auto p2 = corners[hexahedron->getEdgeList()[i + 1]];
+            auto a = this->calculateProjectedPoint(QVector4D(p1));
+            auto b = this->calculateProjectedPoint(QVector4D(p2));
+            renderer.renderLine(a, b, COLOR_CAMERA, 3.0f);
         }
     }
 

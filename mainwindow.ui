@@ -134,29 +134,6 @@ QRadioButton::indicator {
        </widget>
       </item>
       <item>
-       <widget class="QLabel" name="label_4">
-        <property name="text">
-         <string>phi | psi | theta</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignCenter</set>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <layout class="QHBoxLayout" name="horizontalLayout_3">
-        <item>
-         <widget class="QDoubleSpinBox" name="phi"/>
-        </item>
-        <item>
-         <widget class="QDoubleSpinBox" name="psi"/>
-        </item>
-        <item>
-         <widget class="QDoubleSpinBox" name="theta"/>
-        </item>
-       </layout>
-      </item>
-      <item>
        <widget class="QLabel" name="label_5">
         <property name="text">
          <string>X | Y |  Z</string>

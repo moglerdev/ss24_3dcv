@@ -1,37 +1,42 @@
 #include <QMatrix4x4>
 
-QMatrix4x4 R_x(const float rad)
+QMatrix4x4 R_z(float deg)
 {
-  auto cos = std::cos(rad);
-  auto sin = std::sqrt(1 - cos * cos);
-  return QMatrix4x4(1, 0, 0, 0,
-                    0, cos, -sin, 0,
-                    0, sin, cos, 0,
-                    0, 0, 0, 1);
+    auto rad = deg * M_PI / 180;
+    auto cos_rad = std::cos(rad);
+    auto sin_rad = std::sqrt(1 - cos_rad * cos_rad);
+
+    return QMatrix4x4(cos_rad, -sin_rad, 0, 0,
+                      sin_rad, cos_rad, 0, 0,
+                      0, 0, 1, 0,
+                      0, 0, 0, 1);
 }
 
-QMatrix4x4 R_y(const float rad)
+QMatrix4x4 R_y(float deg)
 {
-  auto cos = std::cos(rad);
-  auto sin = std::sqrt(1 - cos * cos);
-  return QMatrix4x4(cos, 0, sin, 0,
-                    0, 1, 0, 0,
-                    -sin, 0, cos, 0,
-                    0, 0, 0, 1);
+    auto rad = deg * M_PI / 180;
+    auto cos_rad = std::cos(rad);
+    auto sin_rad = std::sqrt(1 - cos_rad * cos_rad);
+
+    return QMatrix4x4(cos_rad, 0, sin_rad, 0,
+                      0, 1, 0, 0,
+                      -sin_rad, 0, cos_rad, 0,
+                      0, 0, 0, 1);
 }
 
-QMatrix4x4 R_z(const float rad)
+QMatrix4x4 R_x(float deg)
 {
-  auto cos = std::cos(rad);
-  auto sin = std::sqrt(1 - cos * cos);
-  return QMatrix4x4(cos, -sin, 0, 0,
-                    sin, cos, 0, 0,
-                    0, 0, 1, 0,
-                    0, 0, 0, 1);
-}
-QMatrix4x4 rotate(const QVector3D &vec)
-{
-  // 𝑅𝑧 𝜃 𝑅𝑦(𝜙)𝑅𝑧 𝜓 𝑅𝑦(−𝜙)𝑅𝑧(−𝜃)
+    auto rad = deg * M_PI / 180;
+    auto cos_rad = std::cos(rad);
+    auto sin_rad = std::sqrt(1 - cos_rad * cos_rad);
 
-  return R_z(-vec.z()) + R_y(vec.y()) + R_z(vec.z());
+    return QMatrix4x4(1, 0, 0, 0,
+                      0, cos_rad, -sin_rad, 0,
+                      0, sin_rad, cos_rad, 0,
+                      0, 0, 0, 1);
+}
+
+QMatrix4x4 getRotationMatrix(QVector3D rotation)
+{
+    return R_z(rotation.x()) * R_y(rotation.y()) * R_z(rotation.z());
 }

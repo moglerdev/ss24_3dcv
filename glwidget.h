@@ -20,6 +20,9 @@ private:
     int pointSize;
     Scene scene;
     PerspectiveCamera *camera;
+    float delta;
+    float phi;
+    float psi;
 
 public:
     GLWidget(QWidget *parent = nullptr);

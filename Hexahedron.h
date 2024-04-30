@@ -36,6 +36,14 @@ public:
                     const QColor &color = COLOR_SCENE,
                     float pointSize = 1) const;
 
+    int getEdgeCount() const {
+        return edgeCount;
+    }
+
+    auto getEdgeList() const {
+        return edgeList;
+    }
+
 protected:
     // Some convenience members to iterate a hexahedron's vertices and edges
     constexpr static unsigned edgeCount = 12;

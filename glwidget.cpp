@@ -55,9 +55,26 @@ GLWidget::GLWidget(QWidget *parent) : QOpenGLWidget(parent), pointSize(5)
     //       Add here your own new 3d scene objects, e.g. cubes, hexahedra, etc.,
     //       analog to line 50 above and the respective Axes-class
     //
-    auto cube = new Cube(QVector4D(0, 2, 40, 1));
-    auto rot = rotate(QVector3D(0.8, 0, 0));
-    cube->affineMap(rot);
+    auto cube = new Cube(E0);
+    auto pos = QMatrix4x4(1, 0, 0, 0,
+                          0, 1, 0, -2,
+                          0, 0, 1, 20,
+                          0, 0, 0, 1);
+    cube->affineMap(pos);
+    scene.push_back(cube);
+    cube = new Cube(E0);
+    pos = QMatrix4x4(1, 0, 0, 2,
+                          0, 1, 0, 0,
+                          0, 0, 1, 10,
+                          0, 0, 0, 1);
+    cube->affineMap(pos);
+    scene.push_back(cube);
+    cube = new Cube(E0);
+    pos = QMatrix4x4(1, 0, 0, 0,
+                          0, 1, 0, 8,
+                          0, 0, 1, 50,
+                          0, 0, 0, 1);
+    cube->affineMap(pos);
     scene.push_back(cube);
 
     // TODO: Assignement 1, Part 2
@@ -75,6 +92,10 @@ GLWidget::GLWidget(QWidget *parent) : QOpenGLWidget(parent), pointSize(5)
 
     this->camera = new PerspectiveCamera(pose, imagePrincipalPoint, plane);
     scene.push_back(this->camera);
+    auto x = R_x(5); // z
+    auto y = R_y(-10);    // y
+    auto z = R_z(0);    // x
+    this->camera->affineMap(x * y * z);
 
     // TODO: Assignement 1, Part 3
     //       Add to your perspective camera methods to project the other scene objects onto its image plane
