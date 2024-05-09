@@ -81,21 +81,36 @@ GLWidget::GLWidget(QWidget *parent) : QOpenGLWidget(parent), pointSize(5)
     //       Add here your own new scene object that represents a perspective camera.
     //       Its draw-method should draw all relevant camera parameters, e.g. image plane, view axes, etc.
     //
-    auto imagePrincipalPoint = QVector4D(0, 0, 5, 1);
-    Plane *plane = new Plane(imagePrincipalPoint, E3);
-    scene.push_back(plane); // some plane
+    auto cameraImagePrincipalPoint = QVector4D(0, 0, 5, 1);
+    Plane *cameraPlane = new Plane(cameraImagePrincipalPoint, E3);
+    scene.push_back(cameraPlane); // some plane
     // TODO: Rotation
-    auto pose = QMatrix4x4(1, 0, 0, 0,
+    auto cameraPose = QMatrix4x4(1, 0, 0, 0,
                            0, 1, 0, 0,
                            0, 0, 1, 0,
                            0, 0, 0, 1);
 
-    this->camera = new PerspectiveCamera(pose, imagePrincipalPoint, plane);
+    this->camera = new PerspectiveCamera(cameraPose, cameraImagePrincipalPoint, cameraPlane);
     scene.push_back(this->camera);
-    auto x = R_x(5); // z
-    auto y = R_y(-10);    // y
-    auto z = R_z(0);    // x
+    auto x = R_x(5);
+    auto y = R_y(-10);
+    auto z = R_z(0);
     this->camera->affineMap(x * y * z);
+
+    auto stereoIimagePrincipalPoint = QVector4D(0, 0, 5, 1);
+    Plane *stereoPlane = new Plane(stereoIimagePrincipalPoint, E3);
+    scene.push_back(stereoPlane); // some plane
+    auto stereoPose = QMatrix4x4(1, 0, 0, 2.5,
+                                 0, 1, 0, 0,
+                                 0, 0, 1, 0,
+                                 0, 0, 0, 1);
+
+    this->stereo = new PerspectiveCamera(stereoPose, stereoIimagePrincipalPoint, stereoPlane);
+    scene.push_back(this->stereo);
+    x = R_x(5);
+    y = R_y(-10);
+    z = R_z(0);
+    this->stereo->affineMap(x * y * z);
 
     // TODO: Assignement 1, Part 3
     //       Add to your perspective camera methods to project the other scene objects onto its image plane

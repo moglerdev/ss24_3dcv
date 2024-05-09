@@ -46,13 +46,18 @@ public:
         this->imagePlane->affineMap(affineMap);
     }
 
-    QVector4D calculateProjectedPoint(const QVector4D &worldPoint)
+    auto getF() const {
+        // calculate eucliden distance from imagePrincipalPoint to camera
+        return pose.inverted() * imagePrincipalPoint;
+    }
+
+    QVector4D calculateProjectedPoint(const QVector4D &worldPoint) const
     {
         // calculate the relative position of the point in the camera coordinate system
         auto relativePoint = pose.inverted() * worldPoint;
 
         // calculate eucliden distance from imagePrincipalPoint to camera
-        auto dis = pose.inverted() * imagePrincipalPoint;
+        auto dis = this->getF();
         // invert it because we use it for the front
         auto f = -dis.z(); // TODO: Skalar Produkt
 
