@@ -35,6 +35,7 @@
 #include "Plane.h"
 #include "PointCloud.h"
 #include "Cube.h"
+#include "StereoVision.h"
 
 using namespace std;
 
@@ -85,32 +86,36 @@ GLWidget::GLWidget(QWidget *parent) : QOpenGLWidget(parent), pointSize(5)
     Plane *cameraPlane = new Plane(cameraImagePrincipalPoint, E3);
     scene.push_back(cameraPlane); // some plane
     // TODO: Rotation
-    auto cameraPose = QMatrix4x4(1, 0, 0, 0,
-                           0, 1, 0, 0,
-                           0, 0, 1, 0,
-                           0, 0, 0, 1);
+    auto cameraPose = QMatrix4x4(1, 0, 0, -5,
+                                 0, 1, 0, 0,
+                                 0, 0, 1, 0,
+                                 0, 0, 0, 1);
 
     this->camera = new PerspectiveCamera(cameraPose, cameraImagePrincipalPoint, cameraPlane);
     scene.push_back(this->camera);
+    /*
     auto x = R_x(5);
     auto y = R_y(-10);
     auto z = R_z(0);
     this->camera->affineMap(x * y * z);
-
+    */
     auto stereoIimagePrincipalPoint = QVector4D(0, 0, 5, 1);
     Plane *stereoPlane = new Plane(stereoIimagePrincipalPoint, E3);
     scene.push_back(stereoPlane); // some plane
-    auto stereoPose = QMatrix4x4(1, 0, 0, 2.5,
+    auto stereoPose = QMatrix4x4(1, 0, 0, 5,
                                  0, 1, 0, 0,
                                  0, 0, 1, 0,
                                  0, 0, 0, 1);
 
     this->stereo = new PerspectiveCamera(stereoPose, stereoIimagePrincipalPoint, stereoPlane);
     scene.push_back(this->stereo);
-    x = R_x(5);
+    /*x = R_x(5);
     y = R_y(-10);
     z = R_z(0);
     this->stereo->affineMap(x * y * z);
+    */
+    auto vision = new StereoVision(this->camera, this->stereo);
+    scene.push_back(vision);
 
     // TODO: Assignement 1, Part 3
     //       Add to your perspective camera methods to project the other scene objects onto its image plane

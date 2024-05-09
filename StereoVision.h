@@ -22,7 +22,7 @@ public:
         // DO NOTHING, BECAUSE CALCULATE ONLY STEREO VISION
     }
 
-    QVector4D calculateStereoPoint(const QVector4D &cameraPointPos, const QVector4D &stereoPointPos) {
+    QVector4D calculateStereoPoint(const QVector4D &camPoint, const QVector4D &stePoint) {
         auto f = this->camera->getF().z();
         if (f != this->stereo->getF().z()) {
             throw "camera and stereo have wrong f";
@@ -31,8 +31,17 @@ public:
         auto camPose = this->camera->getPose();
         auto stePose = this->stereo->getPose();
 
-        auto z = -f * camPose.column(3).z();
-        // TODO: FERTIG HIER !!! Folie §3 / 22; 3dv.03.xopp
+        auto camLocal = camPose * camPoint;
+        auto steLocal = stePose * stePoint;
+
+        auto b = std::abs(camPose.column(3).x() - stePose.column(3).x());
+
+        auto parallax = camLocal.x() - steLocal.x();
+        auto z = -f * (b / parallax);
+        auto y = -z * (camLocal.y() / f);
+        auto x = -z * (camLocal.x() / f);
+
+        return QVector4D(x, y, z, 1);
     }
 
     void renderHexahedron(const RenderCamera &renderer, const Hexahedron *hexahedron)
@@ -48,7 +57,10 @@ public:
             auto ste1 = this->stereo->calculateProjectedPoint(QVector4D(org1));
             auto ste2 = this->stereo->calculateProjectedPoint(QVector4D(org2));
 
-            // TODO: Calculate Stereo Vision Points
+            auto a = calculateStereoPoint(cam1, ste1);
+            auto b = calculateStereoPoint(cam2, ste2);
+
+            renderer.renderLine(a, b, COLOR_POINT_CLOUD);
         }
     }
 
@@ -56,8 +68,10 @@ public:
     {
         for (auto p : pointCloud)
         {
-            auto t = this->calculateProjectedPoint(p);
-            renderer.renderPoint(t, COLOR_CAMERA, 5.0f);
+            auto cam1 = this->camera->calculateProjectedPoint(QVector4D(p));
+            auto ste1 = this->stereo->calculateProjectedPoint(QVector4D(p));
+            auto t = this->calculateStereoPoint(cam1, ste1);
+            renderer.renderPoint(t, COLOR_POINT_CLOUD, 5.0f);
         }
     }
 
