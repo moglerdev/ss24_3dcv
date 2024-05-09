@@ -48,13 +48,16 @@ public:
 
     auto getF() const {
         // calculate eucliden distance from imagePrincipalPoint to camera
-        return pose.inverted() * imagePrincipalPoint;
+        return imagePrincipalPoint;
     }
 
     QVector4D calculateProjectedPoint(const QVector4D &worldPoint) const
     {
         // calculate the relative position of the point in the camera coordinate system
-        auto relativePoint = pose.inverted() * worldPoint;
+        auto relativePoint = QMatrix4x4(0,0,0,0,
+                                        0,0,0,0,
+                                        0,0,0,0,
+                                        0,0,0,0).inverted() * worldPoint;
 
         // calculate eucliden distance from imagePrincipalPoint to camera
         auto dis = this->getF();
@@ -65,7 +68,7 @@ public:
         auto planePoint = (-f / relativePoint.z()) * QVector2D(relativePoint.x(), relativePoint.y());
 
         // calculate real world point cordinates
-        return pose * QVector4D(planePoint.x(), planePoint.y(), dis.z(), 1);
+        return pose.inverted() * QVector4D(planePoint.x(), planePoint.y(), dis.z(), 1);
     }
 
     void renderLine(const RenderCamera &renderer, const QVector4D &a, const QVector4D &b)
