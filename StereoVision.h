@@ -22,26 +22,19 @@ public:
         // DO NOTHING, BECAUSE CALCULATE ONLY STEREO VISION
     }
 
-    QVector4D calculateStereoPoint(const QVector4D &camPoint, const QVector4D &stePoint) {
+    QVector4D calculateStereoPoint(const QVector4D &camLocal, const QVector4D &steLocal) {
         auto f = this->camera->getF().z();
-        if (f != this->stereo->getF().z()) {
-            throw "camera and stereo have wrong f";
-        }
-
         auto camPose = this->camera->getPose();
         auto stePose = this->stereo->getPose();
 
-        auto camLocal = camPose * camPoint;
-        auto steLocal = stePose * stePoint;
-
-        auto b = std::abs(camPose.column(3).x() - stePose.column(3).x());
+        auto b = std::abs(stePose.column(3).x() - camPose.column(3).x());
 
         auto parallax = camLocal.x() - steLocal.x();
-        auto z = -f * (b / parallax);
-        auto y = -z * (camLocal.y() / f);
-        auto x = -z * (camLocal.x() / f);
+        auto z = f * (b / parallax);
+        auto y = z * (steLocal.y() / f);
+        auto x = z * (steLocal.x() / f);
 
-        return QVector4D(x, y, z, 1);
+        return stePose * QVector4D(x, y, z, 1);
     }
 
     void renderHexahedron(const RenderCamera &renderer, const Hexahedron *hexahedron)
@@ -51,15 +44,17 @@ public:
             auto org1 = corners[hexahedron->getEdgeList()[i]];
             auto org2 = corners[hexahedron->getEdgeList()[i + 1]];
 
-            auto cam1 = this->camera->calculateProjectedPoint(QVector4D(org1));
-            auto cam2 = this->camera->calculateProjectedPoint(QVector4D(org2));
+            auto cam1 = this->camera->calculateLocalPoint(org1);
+            auto cam2 = this->camera->calculateLocalPoint(org2);
 
-            auto ste1 = this->stereo->calculateProjectedPoint(QVector4D(org1));
-            auto ste2 = this->stereo->calculateProjectedPoint(QVector4D(org2));
+            auto ste1 = this->stereo->calculateLocalPoint(org1);
+            auto ste2 = this->stereo->calculateLocalPoint(org2);
 
             auto a = calculateStereoPoint(cam1, ste1);
             auto b = calculateStereoPoint(cam2, ste2);
 
+            renderer.renderPoint(a, COLOR_POINT_CLOUD, 10.0f);
+            renderer.renderPoint(b, COLOR_POINT_CLOUD, 10.0f);
             renderer.renderLine(a, b, COLOR_POINT_CLOUD);
         }
     }
@@ -68,8 +63,8 @@ public:
     {
         for (auto p : pointCloud)
         {
-            auto cam1 = this->camera->calculateProjectedPoint(QVector4D(p));
-            auto ste1 = this->stereo->calculateProjectedPoint(QVector4D(p));
+            auto cam1 = this->camera->calculateProjectedPoint(QVector3D(p));
+            auto ste1 = this->stereo->calculateProjectedPoint(QVector3D(p));
             auto t = this->calculateStereoPoint(cam1, ste1);
             renderer.renderPoint(t, COLOR_POINT_CLOUD, 5.0f);
         }

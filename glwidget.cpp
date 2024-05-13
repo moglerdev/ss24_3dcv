@@ -86,23 +86,18 @@ GLWidget::GLWidget(QWidget *parent) : QOpenGLWidget(parent), pointSize(5)
     Plane *cameraPlane = new Plane(cameraImagePrincipalPoint, E3);
     scene.push_back(cameraPlane); // some plane
     // TODO: Rotation
-    auto cameraPose = QMatrix4x4(1, 0, 0, -5,
+    auto cameraPose = QMatrix4x4(1, 0, 0, -1.5,
                                  0, 1, 0, 0,
                                  0, 0, 1, 0,
                                  0, 0, 0, 1);
 
     this->camera = new PerspectiveCamera(cameraPose, cameraImagePrincipalPoint, cameraPlane);
     scene.push_back(this->camera);
-    /*
-    auto x = R_x(5);
-    auto y = R_y(-10);
-    auto z = R_z(0);
-    this->camera->affineMap(x * y * z);
-    */
+    //this->camera->affineMap(R_x(5));
     auto stereoIimagePrincipalPoint = QVector4D(0, 0, 5, 1);
     Plane *stereoPlane = new Plane(stereoIimagePrincipalPoint, E3);
     scene.push_back(stereoPlane); // some plane
-    auto stereoPose = QMatrix4x4(1, 0, 0, 5,
+    auto stereoPose = QMatrix4x4(1, 0, 0, 1.5,
                                  0, 1, 0, 0,
                                  0, 0, 1, 0,
                                  0, 0, 0, 1);
