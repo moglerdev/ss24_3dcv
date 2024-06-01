@@ -20,6 +20,7 @@ private:
     int pointSize;
     Scene scene;
     PerspectiveCamera *camera;
+    PerspectiveCamera *stereo;
     float delta;
     float phi;
     float psi;

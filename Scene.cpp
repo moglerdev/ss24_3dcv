@@ -8,6 +8,7 @@
 #include "Scene.h"
 #include "PointCloud.h"
 #include "Cube.h"
+#include "StereoVision.h"
 
 //
 // iterates all objects under its control and has them drawn by the renderer
@@ -44,12 +45,19 @@ void Scene::draw(const RenderCamera &renderer, const QColor &color) const
                 }
                 break;
             }
-            case SceneObjectType::ST_STEREOCAMERA:
+            case SceneObjectType::ST_STEREO_VISION:
+            {
                 // TODO: Assignement 2, Part 1 - 3
                 // Part 1: This is the place to invoke the stereo camera's projection method and draw the projected objects.
                 // Part 2: This is the place to invoke the stereo camera's reconstruction method.
                 // Part 3: This is the place to invoke the stereo camera's reconstruction method using misaligned stereo cameras.
+                StereoVision *vision = dynamic_cast<StereoVision *>(obj);
+                for (auto obj2 : *this)
+                {
+                    vision->renderSceneObject(renderer, obj2);
+                }
                 break;
+            }
             default:
                 break;
             }

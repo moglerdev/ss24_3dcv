@@ -18,7 +18,7 @@ protected:
 
 public:
     PerspectiveCamera(
-        const QMatrix4x4& _pose,
+        const QMatrix4x4 &_pose,
         const QVector4D &_imagePrincipalPoint,
         Plane *_imagePlane) : pose(_pose),
                               imagePlane(_imagePlane)
@@ -37,7 +37,7 @@ public:
         return pose;
     }
 
-    void setPose(const QMatrix4x4& newPose)
+    void setPose(const QMatrix4x4 &newPose)
     {
         auto affineMap = pose.inverted() * newPose;
         pose = newPose;
@@ -46,13 +46,19 @@ public:
         this->imagePlane->affineMap(affineMap);
     }
 
-    QVector4D calculateProjectedPoint(const QVector4D &worldPoint)
+    auto getF() const
     {
+        // calculate eucliden distance from imagePrincipalPoint to camera
+        return pose.inverted() * imagePrincipalPoint;
+    }
+
+    QVector4D calculateLocalPoint(const QVector3D &worldPoint3d) const {
+        auto worldPoint = QVector4D(worldPoint3d, 1);
         // calculate the relative position of the point in the camera coordinate system
         auto relativePoint = pose.inverted() * worldPoint;
 
         // calculate eucliden distance from imagePrincipalPoint to camera
-        auto dis = pose.inverted() * imagePrincipalPoint;
+        auto dis = this->getF();
         // invert it because we use it for the front
         auto f = -dis.z(); // TODO: Skalar Produkt
 
@@ -60,10 +66,15 @@ public:
         auto planePoint = (-f / relativePoint.z()) * QVector2D(relativePoint.x(), relativePoint.y());
 
         // calculate real world point cordinates
-        return pose * QVector4D(planePoint.x(), planePoint.y(), dis.z(), 1);
+        return QVector4D(planePoint.x(), planePoint.y(), dis.z(), 1);
     }
 
-    void renderLine(const RenderCamera &renderer, const QVector4D &a, const QVector4D &b)
+    QVector4D calculateProjectedPoint(const QVector3D &worldPoint3d) const
+    {
+        return pose.inverted() * this->calculateLocalPoint(worldPoint3d);
+    }
+
+    void renderLine(const RenderCamera &renderer, const QVector3D &a, const QVector3D &b)
     {
         // TODO: keine Ahnung ob das so richtig ist, aber es geht xD
 
@@ -76,11 +87,12 @@ public:
     void renderHexahedron(const RenderCamera &renderer, const Hexahedron *hexahedron)
     {
         const std::vector<QVector3D> &corners = std::vector(*hexahedron);
-        for (unsigned i = 0; i < 2 * hexahedron->getEdgeCount(); i += 2) {
+        for (unsigned i = 0; i < 2 * hexahedron->getEdgeCount(); i += 2)
+        {
             auto p1 = corners[hexahedron->getEdgeList()[i]];
             auto p2 = corners[hexahedron->getEdgeList()[i + 1]];
-            auto a = this->calculateProjectedPoint(QVector4D(p1));
-            auto b = this->calculateProjectedPoint(QVector4D(p2));
+            auto a = this->calculateProjectedPoint(p1);
+            auto b = this->calculateProjectedPoint(p2);
             renderer.renderLine(a, b, COLOR_CAMERA, 3.0f);
         }
     }
@@ -89,7 +101,7 @@ public:
     {
         for (auto p : pointCloud)
         {
-            auto t = this->calculateProjectedPoint(p);
+            auto t = this->calculateProjectedPoint(QVector3D(p));
             renderer.renderPoint(t, COLOR_CAMERA, 5.0f);
         }
     }
