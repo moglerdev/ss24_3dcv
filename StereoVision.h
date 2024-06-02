@@ -6,13 +6,14 @@
 
 class StereoVision : public SceneObject
 {
-private:
+protected:
     PerspectiveCamera* camera;
     PerspectiveCamera* stereo;
 
 public:
     StereoVision(PerspectiveCamera* _camera, PerspectiveCamera* _stereo) : camera(_camera), stereo(_stereo) {
         type = SceneObjectType::ST_STEREO_VISION;
+
     }
 
 
@@ -22,7 +23,7 @@ public:
         // DO NOTHING, BECAUSE CALCULATE ONLY STEREO VISION
     }
 
-    QVector4D calculateStereoPoint(const QVector4D &camLocal, const QVector4D &steLocal) {
+    virtual QVector4D calculateStereoPoint(const QVector4D &camLocal, const QVector4D &steLocal) {
         auto f = this->camera->getF().z();
         auto camPose = this->camera->getPose();
         auto stePose = this->stereo->getPose();
@@ -36,7 +37,6 @@ public:
 
         return stePose * QVector4D(x, y, z, 1);
     }
-
     void renderHexahedron(const RenderCamera &renderer, const Hexahedron *hexahedron)
     {
         const std::vector<QVector3D> &corners = std::vector(*hexahedron);

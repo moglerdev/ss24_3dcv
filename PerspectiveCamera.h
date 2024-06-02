@@ -27,7 +27,6 @@ public:
         this->imagePrincipalPoint = pose * _imagePrincipalPoint;
         type = SceneObjectType::ST_PERSPECTIVECAMERA;
     }
-
     virtual ~PerspectiveCamera() override
     {
     }
@@ -71,7 +70,7 @@ public:
 
     QVector4D calculateProjectedPoint(const QVector3D &worldPoint3d) const
     {
-        return pose.inverted() * this->calculateLocalPoint(worldPoint3d);
+        return pose * this->calculateLocalPoint(worldPoint3d);
     }
 
     void renderLine(const RenderCamera &renderer, const QVector3D &a, const QVector3D &b)

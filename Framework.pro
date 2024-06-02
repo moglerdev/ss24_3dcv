@@ -34,7 +34,8 @@ HEADERS += ./glwidget.h \
     Renderer.h \
     Scene.h \
     SceneObject.h \
-    StereoVision.h
+    StereoVision.h \
+    StereoVisionWithError.h
 
 SOURCES += ./glwidget.cpp \
      ./mainwindow.cpp \

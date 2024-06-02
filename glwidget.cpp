@@ -36,6 +36,7 @@
 #include "PointCloud.h"
 #include "Cube.h"
 #include "StereoVision.h"
+#include "StereoVisionWithError.h"
 
 using namespace std;
 
@@ -93,7 +94,11 @@ GLWidget::GLWidget(QWidget *parent) : QOpenGLWidget(parent), pointSize(5)
 
     this->camera = new PerspectiveCamera(cameraPose, cameraImagePrincipalPoint, cameraPlane);
     scene.push_back(this->camera);
-    //this->camera->affineMap(R_x(5));
+
+
+
+
+
     auto stereoIimagePrincipalPoint = QVector4D(0, 0, 5, 1);
     Plane *stereoPlane = new Plane(stereoIimagePrincipalPoint, E3);
     scene.push_back(stereoPlane); // some plane
@@ -104,12 +109,10 @@ GLWidget::GLWidget(QWidget *parent) : QOpenGLWidget(parent), pointSize(5)
 
     this->stereo = new PerspectiveCamera(stereoPose, stereoIimagePrincipalPoint, stereoPlane);
     scene.push_back(this->stereo);
-    /*x = R_x(5);
-    y = R_y(-10);
-    z = R_z(0);
-    this->stereo->affineMap(x * y * z);
-    */
+    this->stereo->affineMap(R_x(10));
+
     auto vision = new StereoVision(this->camera, this->stereo);
+    //auto vision = new StereoVisionWithError(this->camera, this->stereo, 0.05, 0.05, 0.1);
     scene.push_back(vision);
 
     // TODO: Assignement 1, Part 3
