@@ -3,5 +3,10 @@
   "files.associations": {
     "cmath": "cpp",
     "random": "cpp"
+  },
+  "workbench.colorCustomizations": {
+    "activityBar.background": "#591314",
+    "titleBar.activeBackground": "#7D1B1C",
+    "titleBar.activeForeground": "#FEFBFB"
   }
 }

@@ -10,6 +10,8 @@
 #include "Cube.h"
 #include "StereoVision.h"
 
+#define CLOUD_MODE 1
+
 //
 // iterates all objects under its control and has them drawn by the renderer
 //
@@ -20,18 +22,20 @@ void Scene::draw(const RenderCamera &renderer, const QColor &color) const
         {
             switch (obj->getType())
             {
+
             case SceneObjectType::ST_AXES:
                 obj->draw(renderer, COLOR_AXES, 2.0f);
                 break;
+            case SceneObjectType::ST_POINT_CLOUD:
+                obj->draw(renderer, COLOR_POINT_CLOUD, 3.0f); // last argument unused
+                break;
+#if CLOUD_MODE == 0
             case SceneObjectType::ST_PLANE:
                 obj->draw(renderer, COLOR_PLANE, 0.3f);
                 break;
             case SceneObjectType::ST_CUBE:
             case SceneObjectType::ST_HEXAHEDRON:
                 obj->draw(renderer, color, 2.0f);
-                break;
-            case SceneObjectType::ST_POINT_CLOUD:
-                obj->draw(renderer, COLOR_POINT_CLOUD, 3.0f); // last argument unused
                 break;
             case SceneObjectType::ST_PERSPECTIVECAMERA:
             {
@@ -58,6 +62,7 @@ void Scene::draw(const RenderCamera &renderer, const QColor &color) const
                 }
                 break;
             }
+#endif
             default:
                 break;
             }

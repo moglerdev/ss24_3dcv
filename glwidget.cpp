@@ -65,16 +65,16 @@ GLWidget::GLWidget(QWidget *parent) : QOpenGLWidget(parent), pointSize(5)
     scene.push_back(cube);
     cube = new Cube(E0);
     pos = QMatrix4x4(1, 0, 0, 2,
-                          0, 1, 0, 0,
-                          0, 0, 1, 10,
-                          0, 0, 0, 1);
+                     0, 1, 0, 0,
+                     0, 0, 1, 10,
+                     0, 0, 0, 1);
     cube->affineMap(pos);
     scene.push_back(cube);
     cube = new Cube(E0);
     pos = QMatrix4x4(1, 0, 0, 0,
-                          0, 1, 0, 8,
-                          0, 0, 1, 50,
-                          0, 0, 0, 1);
+                     0, 1, 0, 8,
+                     0, 0, 1, 50,
+                     0, 0, 0, 1);
     cube->affineMap(pos);
     scene.push_back(cube);
 
