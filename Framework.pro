@@ -34,7 +34,11 @@ HEADERS += ./glwidget.h \
     Renderer.h \
     Scene.h \
     SceneObject.h \
-    StereoVision.h
+    StereoVision.h \
+    kdnode.h \
+    kdtree.h \
+    octnode.h \
+    octtree.h
 
 SOURCES += ./glwidget.cpp \
      ./mainwindow.cpp \
@@ -50,6 +54,10 @@ SOURCES += ./glwidget.cpp \
     Renderer.cpp \
     Scene.cpp \
     SceneObject.cpp \
-    StereoVision.cpp
+    StereoVision.cpp \
+    kdnode.cpp \
+    kdtree.cpp \
+    octnode.cpp \
+    octtree.cpp
 
 FORMS += ./mainwindow.ui
