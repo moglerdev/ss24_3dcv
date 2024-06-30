@@ -29,6 +29,7 @@ HEADERS += ./glwidget.h \
     Axes.h \
     Cube.h \
     Hexahedron.h \
+    PCA.h \
     PerspectiveCamera.h \
     Plane.h \
     Renderer.h \
@@ -49,6 +50,7 @@ SOURCES += ./glwidget.cpp \
     Axes.cpp \
     Cube.cpp \
     Hexahedron.cpp \
+    PCA.cpp \
     PerspectiveCamera.cpp \
     Plane.cpp \
     Renderer.cpp \
