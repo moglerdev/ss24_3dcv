@@ -1,20 +1,30 @@
 #ifndef PCA_H
 #define PCA_H
 
-#include "PointCloud.h"
-#include <QVector4D>
-#include <QMatrix4x4>
+#include <Axes.h>
+#include <PointCloud.h>
 
-class PCA
+class PCA : public SceneObject
 {
+public:
+  PCA(PointCloud *sourcePointcloud, PointCloud *targetPointcloud);
+  ~PCA();
+  void align();
+  virtual void affineMap(const QMatrix4x4 &matrix) override;
+  virtual void draw(const RenderCamera &renderer, const QColor &color, float lineWidth) const override;
 
-  PCA() noexcept;
-  
-  QVector4D calculate_center(PointCloud *pts);
+private:
+  QMatrix4x4 createTranslationMatrix(float x, float y, float z) const;
+  QMatrix4x4 createRotationMatrix(float angleX, float angleY, float angleZ) const;
+  float multiplyRows(std::vector<float> row1, std::vector<float> row2) const;
+  float angleFromMatrix(QMatrix4x4 matrix) const;
+  std::pair<QVector4D, QMatrix4x4> calculateEigen(PointCloud *pc) const;
+  std::vector<float> eigvals(QMatrix4x4 matrix) const;
+  std::vector<float> solve_cubic_equation(float a, float b, float c, float d) const;
+  std::vector<QVector3D> eigvecs(QMatrix4x4 matrix, std::vector<float> vals) const;
 
-  QMatrix4x4 calculate_axis_matrix(PointCloud *pts, const QVector4D &center);
-
-  int determinant(QMatrix4x4 matrix);
+  PointCloud *source;
+  PointCloud *target;
 };
 
 #endif // PCA_H

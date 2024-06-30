@@ -124,18 +124,6 @@ bool PointCloud::loadPLY(const QString &filePath)
             (*this)[i][3] = 1.0;
         }
     }
-
-    // Move Point Cloud 20 times on the Z Axe
-    // TODO: Randomizer
-    // this->affineMap(QMatrix4x4(1, 0, 0, 0,
-    //                            0, 1, 0, 0,
-    //                            0, 0, 1, 20,
-    //                            0, 0, 0, 1));
-
-    kdTree = new KdTree(this);
-    kdTree->construct(3);
-    octTree = new OctTree(this);
-    octTree->construct();
     return true;
 }
 
@@ -155,20 +143,4 @@ void PointCloud::affineMap(const QMatrix4x4 &M)
 void PointCloud::draw(const RenderCamera &camera, const QColor &color, float) const
 {
     camera.renderPCL((*this), color, pointSize);
-
-    for (auto &point : kdTree->points)
-    {
-        camera.renderPoint(point.first, point.second, 20.0);
-    }
-
-    std::vector<OctNode> list_of_octnodes = octTree->get_all_level_nodes(3);
-
-    for (auto node : list_of_octnodes)
-    {
-        float width = abs(node.bottomRightBack.x() - node.topLeftFront.x());
-        float height = abs(node.bottomRightBack.y() - node.topLeftFront.y());
-        float depth = abs(node.bottomRightBack.z() - node.topLeftFront.z());
-        Hexahedron hexa = Hexahedron(node.bottomRightBack.toVector4D(), width, height, depth);
-        hexa.draw(camera, QColor(255, 255, 0), 2);
-    }
 }

@@ -1,7 +1,7 @@
 #ifndef OCTNODE_H
 #define OCTNODE_H
 
-#include "QVector3D""
+#include "QVector3D"
 
 class OctNode
 {
@@ -13,7 +13,7 @@ public:
     QVector3D topLeftFront;
     QVector3D bottomRightBack;
     int level;
-    std::vector<OctNode*> children;
+    std::vector<OctNode *> children;
 };
 
 #endif // OCTNODE_H

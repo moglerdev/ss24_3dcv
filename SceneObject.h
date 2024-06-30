@@ -31,7 +31,8 @@ enum class SceneObjectType
     ST_STEREOCAMERA [[maybe_unused]],      // stereo cameras
     ST_POINT_CLOUD [[maybe_unused]],       // point cloud
     ST_MaxSceneType [[maybe_unused]],
-    ST_STEREO_VISION [[maybe_unused]]
+    ST_STEREO_VISION [[maybe_unused]],
+    ST_PCA [[maybe_unused]]
 };
 
 class SceneObject

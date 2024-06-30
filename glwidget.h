@@ -11,10 +11,9 @@
 #include "Renderer.h" // containes declaration of Renderer
 #include "Scene.h"    // containes declaration of Scene Manager
 #include "PerspectiveCamera.h"
-#include "kdtree.h"
-#include "octtree.h"
 
 #define CLOUD_MODE 1
+#define MODE 2
 
 class GLWidget : public QOpenGLWidget
 {
@@ -28,6 +27,8 @@ private:
     float delta;
     float phi;
     float psi;
+    void initAffineMaps();
+    void initPCA();
 
 public:
     GLWidget(QWidget *parent = nullptr);

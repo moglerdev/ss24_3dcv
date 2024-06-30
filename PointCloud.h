@@ -7,9 +7,6 @@
 #include "SceneObject.h"
 #include "Renderer.h"
 
-#include "kdtree.h"
-#include "octtree.h"
-
 class PointCloud : public SceneObject, public QVector<QVector4D>
 {
 private:
@@ -19,17 +16,11 @@ private:
     unsigned pointSize = 3;
     const float pointCloudScale = 1.5f;
 
-    KdTree *kdTree;
-    OctTree *octTree;
-
 public:
     PointCloud();
     virtual ~PointCloud();
 
     bool loadPLY(const QString &);
-
-    KdTree *getKdTree() const { return kdTree; }
-    OctTree *getOctTree() const { return octTree; }
 
     virtual void affineMap(const QMatrix4x4 &) override;
     virtual void draw(const RenderCamera &camera,

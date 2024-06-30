@@ -29,7 +29,6 @@ void Scene::draw(const RenderCamera &renderer, const QColor &color) const
             case SceneObjectType::ST_POINT_CLOUD:
                 obj->draw(renderer, COLOR_POINT_CLOUD, 3.0f); // last argument unused
                 break;
-#if CLOUD_MODE == 0
             case SceneObjectType::ST_PLANE:
                 obj->draw(renderer, COLOR_PLANE, 0.3f);
                 break;
@@ -62,7 +61,6 @@ void Scene::draw(const RenderCamera &renderer, const QColor &color) const
                 }
                 break;
             }
-#endif
             default:
                 break;
             }

@@ -36,6 +36,7 @@
 #include "PointCloud.h"
 #include "Cube.h"
 #include "StereoVision.h"
+#include "PCA.h"
 
 using namespace std;
 
@@ -51,7 +52,40 @@ GLWidget::GLWidget(QWidget *parent) : QOpenGLWidget(parent), pointSize(5)
 
     // setup the scene
     scene.push_back(new Axes(E0, QMatrix4x4())); // the global world coordinate system
+#if MODE == 1
+    this->initAffineMaps();
+#elif MODE == 2
+    this->initPCA();
+#endif
+}
 
+void GLWidget::initPCA()
+{
+    auto bunnyMain = new PointCloud;
+    auto bunnyTransformed = new PointCloud;
+    bunnyMain->loadPLY("../ss24_3dcv/data/bunny.ply");
+    bunnyTransformed->loadPLY("../ss24_3dcv/data/bunny.ply");
+
+    auto x = R_x(5);
+    auto y = R_y(-10);
+    auto z = R_z(0);
+    bunnyTransformed->affineMap(x * y * z);
+
+    if (bunnyMain->size() == 0 || bunnyTransformed->size() == 0)
+    {
+        delete bunnyMain;
+        delete bunnyTransformed;
+        return;
+    }
+    scene.push_back(bunnyMain);
+    scene.push_back(bunnyTransformed);
+
+    auto pca = new PCA(bunnyMain, bunnyTransformed);
+    scene.push_back(pca);
+}
+
+void GLWidget::initAffineMaps()
+{
     // TODO: Assignment 1, Part 1
     //       Add here your own new 3d scene objects, e.g. cubes, hexahedra, etc.,
     //       analog to line 50 above and the respective Axes-class
@@ -93,7 +127,7 @@ GLWidget::GLWidget(QWidget *parent) : QOpenGLWidget(parent), pointSize(5)
 
     this->camera = new PerspectiveCamera(cameraPose, cameraImagePrincipalPoint, cameraPlane);
     scene.push_back(this->camera);
-    //this->camera->affineMap(R_x(5));
+    // this->camera->affineMap(R_x(5));
     auto stereoIimagePrincipalPoint = QVector4D(0, 0, 5, 1);
     Plane *stereoPlane = new Plane(stereoIimagePrincipalPoint, E3);
     scene.push_back(stereoPlane); // some plane
@@ -323,7 +357,7 @@ void GLWidget::setPointSize(int size)
 //
 void GLWidget::openFileDialog()
 {
-    const QString filePath = QFileDialog::getOpenFileName(this, tr("Open PLY file"), "../data", tr("PLY Files (*.ply)"));
+    const QString filePath = QFileDialog::getOpenFileName(this, tr("Open PLY file"), "../ss24_3dcv/data/", tr("PLY Files (*.ply)"));
     PointCloud *pointCloud = new PointCloud;
 
     if (!filePath.isEmpty() && pointCloud)

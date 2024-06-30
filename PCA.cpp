@@ -1,120 +1,226 @@
-#include <iostream>
-#include "external/eigen-3.3.9/Eigen/Eigen"
 #include "PCA.h"
+#include <Eigen/Dense>
+#include "math.h"
+#include "glwidget.h"
 
-PCA::PCA() noexcept {}
-
-QVector4D PCA::calculate_center(PointCloud *pts)
+PCA::PCA(PointCloud *sourcePoibtcloud, PointCloud *targetPointcloud) : source(sourcePoibtcloud), target(targetPointcloud)
 {
-    std::vector<QVector4D> points_vector;
-    for (auto p : *pts)
-    {
-        points_vector.push_back(p);
-    }
-    QVector4D center(0, 0, 0, 0);
-    for (QVector4D point : points_vector)
-    {
-        center += point;
-    }
-    center /= points_vector.size();
-    return center;
+    target->affineMap(createTranslationMatrix(0.5, 0.5, 0.5));
+    target->affineMap(createRotationMatrix(30.0, 0.0, 0.0));
+    type = SceneObjectType::ST_PCA;
 }
 
-QMatrix4x4 PCA::calculate_axis_matrix(PointCloud *pts, const QVector4D &center)
+PCA::~PCA()
 {
-    std::vector<QVector3D> points_vector;
-    for (auto p : *pts)
-    {
-        points_vector.push_back(p.toVector3D());
-    }
-    // Matrix A aufbauen. A=((p1-c) (p2-c) (p3-c) (p4-c)...(pn-c))
-    size_t n = points_vector.size(); // Anzahl der Punkte
-    std::vector<std::vector<float>> A(3, std::vector<float>(n));
-    for (size_t j = 0; j < n; ++j)
-    {
-        for (int i = 0; i < 3; ++i)
-        {
-            A[i][j] = points_vector[j][i] - center[i];
-        }
-    }
-
-    // Matrix A transponieren
-    std::vector<std::vector<float>> A_transposed(n, std::vector<float>(3));
-    for (size_t i = 0; i < 3; ++i)
-    {
-        for (size_t j = 0; j < n; ++j)
-        {
-            A_transposed[j][i] = A[i][j];
-        }
-    }
-
-    // Matrix M aufbauen M = A * A^T
-    std::vector<std::vector<float>> M(4, std::vector<float>(3, 0.0f));
-    for (int i = 0; i < 3; ++i)
-    {
-        for (int j = 0; j < 3; ++j)
-        {
-            for (size_t k = 0; k < n; ++k)
-            {
-                M[i][j] += A[i][k] * A_transposed[k][j];
-            }
-        }
-    }
-
-    // Matrix M ausgeben
-    std::cout << "Matrix M = A * A^T:" << std::endl;
-    for (const auto &row : M)
-    {
-        for (float val : row)
-        {
-            std::cout << val << " ";
-        }
-        std::cout << std::endl;
-    }
-
-    // M in Eigen Matrix umwandeln
-    Eigen::Matrix3f eigen_matrix;
-    for (int i = 0; i < 3; ++i)
-    {
-        for (int j = 0; j < 3; ++j)
-        {
-            eigen_matrix(i, j) = M[i][j];
-        }
-    }
-
-    // Eigenvektoren berechnen
-    Eigen::SelfAdjointEigenSolver<Eigen::Matrix3f> solver(eigen_matrix);
-    Eigen::Matrix3f eigenvectors = solver.eigenvectors();
-    Eigen::Vector3f eigenvalues = solver.eigenvalues();
-
-    // make pairs of eigenvalues and eigenvectors
-    std::vector<std::pair<float, Eigen::Vector3f>> eigen_pairs;
-    for (int i = 0; i < 3; ++i)
-    {
-        eigen_pairs.push_back(std::make_pair(eigenvalues(i), eigenvectors.col(i)));
-    }
-
-    // sort the eigen pairs according to the eigenvalues in ascending order
-    std::sort(eigen_pairs.begin(), eigen_pairs.end(), [](const std::pair<float, Eigen::Vector3f> &p1, const std::pair<float, Eigen::Vector3f> &p2)
-              { return p1.first < p2.first; });
-
-    // print pairs
-    for (const auto &pair : eigen_pairs)
-    {
-        std::cout << "Eigenvalue: " << pair.first << std::endl;
-        std::cout << "Eigenvector:\n"
-                  << pair.second << std::endl;
-    }
-
-    return QMatrix4x4(eigen_pairs[0].second(0), eigen_pairs[1].second(0), eigen_pairs[2].second(0), 0,
-                      eigen_pairs[0].second(1), eigen_pairs[1].second(1), eigen_pairs[2].second(1), 0,
-                      eigen_pairs[0].second(2), eigen_pairs[1].second(2), eigen_pairs[2].second(2), 0,
-                      0, 0, 0, 1);
 }
 
-int PCA::determinant(QMatrix4x4 matrix)
+void PCA::align()
 {
-    return matrix(0, 0) * (matrix(1, 1) * matrix(2, 2) - matrix(1, 2) * matrix(2, 1)) -
-           matrix(0, 1) * (matrix(1, 0) * matrix(2, 2) - matrix(1, 2) * matrix(2, 0)) +
-           matrix(0, 2) * (matrix(1, 0) * matrix(2, 1) - matrix(1, 1) * matrix(2, 0));
+    // First: Centroid, Second: Rotation-Matrix
+    auto source_ret = calculateEigen(source);
+    auto target_ret = calculateEigen(target);
+    auto rotation = source_ret.second * target_ret.second.transposed();
+    target->affineMap(rotation);
+
+    source_ret = calculateEigen(source);
+    target_ret = calculateEigen(target);
+    auto translation = (source_ret.first.toVector3D() - target_ret.first.toVector3D()).toVector4D();
+    target->affineMap(createTranslationMatrix(translation.x(), translation.y(), translation.z()));
+}
+
+void PCA::draw(const RenderCamera &renderer, const QColor &color, float lineWidth) const
+{
+    source->draw(renderer, QColor(255, 255, 255), 3.0);
+    auto f = calculateEigen(source);
+    (new Axes(f.first, f.second))->draw(renderer);
+    target->draw(renderer, QColor(255, 0, 0), 3.0);
+
+    auto s = calculateEigen(target);
+    (new Axes(s.first, s.second))->draw(renderer);
+}
+
+void PCA::affineMap(const QMatrix4x4 &M) {}
+
+QMatrix4x4 PCA::createTranslationMatrix(float x, float y, float z) const
+{
+    return QMatrix4x4(
+        1, 0, 0, x,
+        0, 1, 0, y,
+        0, 0, 1, z,
+        0, 0, 0, 1);
+}
+
+QMatrix4x4 PCA::createRotationMatrix(float angleX, float angleY, float angleZ) const
+{
+    QMatrix4x4 rotationMatrix;
+
+    rotationMatrix.rotate(angleX, QVector3D(1.0f, 0.0f, 0.0f));
+    rotationMatrix.rotate(angleY, QVector3D(0.0f, 1.0f, 0.0f));
+    rotationMatrix.rotate(angleZ, QVector3D(0.0f, 0.0f, 1.0f));
+
+    return rotationMatrix;
+}
+
+std::pair<QVector4D, QMatrix4x4> PCA::calculateEigen(PointCloud *pc) const
+{
+    float cx = 0, cy = 0, cz = 0;
+    for (auto pnt = pc->begin(); pnt != pc->end(); ++pnt)
+    {
+        auto point = *pnt;
+        cx += point.x();
+        cy += point.y();
+        cz += point.z();
+    }
+    int m = pc->size();
+    QVector3D centroid = QVector3D(cx / m, cy / m, cz / m);
+
+    std::vector<float> px, py, pz;
+    for (auto pnt = pc->begin(); pnt != pc->end(); ++pnt)
+    {
+        auto point = *pnt;
+        px.push_back(point.x() - centroid.x());
+        py.push_back(point.y() - centroid.y());
+        pz.push_back(point.z() - centroid.z());
+    }
+
+    std::vector<float> vals;
+    std::vector<QVector3D> vecs;
+
+    QMatrix4x4 matrix = QMatrix4x4();
+    QMatrix4x4 mat;
+
+    mat = QMatrix4x4(multiplyRows(px, px), multiplyRows(px, py), multiplyRows(px, pz), 0,
+                     multiplyRows(py, px), multiplyRows(py, py), multiplyRows(py, pz), 0,
+                     multiplyRows(pz, px), multiplyRows(pz, py), multiplyRows(pz, pz), 0,
+                     0, 0, 0, 1);
+
+    vals = eigvals(mat);
+    vecs = eigvecs(mat, vals);
+
+    matrix.setColumn(0, vecs[0].toVector4D());
+    matrix.setColumn(1, vecs[1].toVector4D());
+    matrix.setColumn(2, vecs[2].toVector4D());
+    matrix.setColumn(3, QVector4D(0, 0, 0, 1));
+
+    return std::make_pair(centroid.toVector4D(), matrix);
+}
+
+float PCA::multiplyRows(std::vector<float> row1, std::vector<float> row2) const
+{
+    float sum = 0;
+    for (int i = 0; i < row1.size(); i++)
+    {
+        sum += row1[i] * row2[i];
+    }
+    return sum;
+}
+
+std::vector<float> PCA::eigvals(QMatrix4x4 matrix) const
+{
+    std::vector<float> vals;
+    float a = matrix.row(0).x();
+    float b = matrix.row(0).y();
+    float c = matrix.row(0).z();
+    float d = matrix.row(1).x();
+    float e = matrix.row(1).y();
+    float f = matrix.row(1).z();
+    float g = matrix.row(2).x();
+    float h = matrix.row(2).y();
+    float i = matrix.row(2).z();
+
+    float trace = a + e + i;
+    float determinant = (a * e * i - a * f * h) + (b * f * g - b * d * i) + (c * d * h - c * e * g);
+
+    std::vector<float> px = {matrix.row(0).x(), matrix.row(0).y(), matrix.row(0).z()};
+    std::vector<float> py = {matrix.row(1).x(), matrix.row(1).y(), matrix.row(1).z()};
+    std::vector<float> pz = {matrix.row(2).x(), matrix.row(2).y(), matrix.row(2).z()};
+
+    QMatrix4x4 second_matrix = QMatrix4x4(multiplyRows(px, px), multiplyRows(px, py), multiplyRows(px, pz), 0,
+                                          multiplyRows(py, px), multiplyRows(py, py), multiplyRows(py, pz), 0,
+                                          multiplyRows(pz, px), multiplyRows(pz, py), multiplyRows(pz, pz), 0,
+                                          0, 0, 0, 1);
+    float second_trace = second_matrix.row(0).x() + second_matrix.row(1).y() + second_matrix.row(2).z();
+    std::vector<float> test = solve_cubic_equation(-1, trace, -0.5 * (trace * trace - second_trace), determinant);
+    return solve_cubic_equation(-1, trace, -0.5 * (trace * trace - second_trace), determinant);
+}
+
+std::vector<float> PCA::solve_cubic_equation(float a, float b, float c, float d) const
+{
+    std::vector<float> roots;
+
+    float p = (b * b - 3 * a * c);
+    float q = (9. * a * b * c - 2 * (b * b * b) - 27 * (a * a) * d);
+    float theta = acos(q / ((2 * p) * sqrt(p)));
+    float root1 = (-b + 2 * cos(theta / 3) * sqrt(p)) / (3 * a);
+    float root2 = (-b + 2 * cos((theta / 3) + (120. * (M_PI / 180))) * sqrt(p)) / (3 * a);
+    float root3 = (-b + 2 * cos((theta / 3) + (240. * (M_PI / 180))) * sqrt(p)) / (3 * a);
+
+    roots.push_back(root1);
+    roots.push_back(root2);
+    roots.push_back(root3);
+    std::sort(roots.begin(), roots.end(), std::greater{});
+    return roots;
+}
+
+std::vector<QVector3D> PCA::eigvecs(QMatrix4x4 matrix, std::vector<float> vals) const
+{
+    std::vector<QVector3D> vecs;
+
+    float a = matrix.row(0).x();
+    float b = matrix.row(0).y();
+    float c = matrix.row(0).z();
+    float d = matrix.row(1).x();
+    float e = matrix.row(1).y();
+    float f = matrix.row(1).z();
+    float g = matrix.row(2).x();
+    float h = matrix.row(2).y();
+    float i = matrix.row(2).z();
+
+    for (auto val : vals)
+    {
+        std::vector<float> row0 = {a - val, b, c};
+        std::vector<float> row1 = {d, e - val, f};
+        std::vector<float> row2 = {g, h, i - val};
+
+        QVector3D r0xr1 = QVector3D(row0[1] * row1[2] - row0[2] * row1[1],
+                                    row0[2] * row1[0] - row0[0] * row1[2],
+                                    row0[0] * row1[1] - row0[1] * row1[0]);
+        QVector3D r0xr2 = QVector3D(row0[1] * row2[2] - row0[2] * row2[1],
+                                    row0[2] * row2[0] - row0[0] * row2[2],
+                                    row0[0] * row2[1] - row0[1] * row2[0]);
+        QVector3D r1xr2 = QVector3D(row1[1] * row2[2] - row1[2] * row2[1],
+                                    row1[2] * row2[0] - row1[0] * row2[2],
+                                    row1[0] * row2[1] - row1[1] * row2[0]);
+        float d0 = r0xr1[0] * r0xr1[0] + r0xr1[1] * r0xr1[1] + r0xr1[2] * r0xr1[2];
+        float d1 = r0xr2[0] * r0xr2[0] + r0xr2[1] * r0xr2[1] + r0xr2[2] * r0xr2[2];
+        float d2 = r1xr2[0] * r1xr2[0] + r1xr2[1] * r1xr2[1] + r1xr2[2] * r1xr2[2];
+
+        float index_max = 0;
+        float d_max = d0;
+
+        if (d1 > d_max)
+        {
+            d_max = d1;
+            index_max = 1;
+        }
+        if (d2 > d_max)
+        {
+            d_max = d2;
+            index_max = 2;
+        }
+
+        if (index_max == 0)
+        {
+            vecs.push_back(r0xr1 / sqrt(d0));
+        }
+        if (index_max == 1)
+        {
+            vecs.push_back(r0xr2 / sqrt(d1));
+        }
+        if (index_max == 2)
+        {
+            vecs.push_back(r1xr2 / sqrt(d2));
+        }
+    }
+    return vecs;
 }
